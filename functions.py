@@ -27,19 +27,24 @@ def sample_outcomes(data, st_dev):
     data[OUTCOME_COL] = np.vectorize(lambda x: rands(x, st_dev))(data[SEED_COL])
 
 
-def simulate(data, iterations, outcome_std, reward_applicator, reward_function, plot=True, **kwargs):
+def simulate(data, iterations, outcome_std, reward_applicator, reward_function, show=True, save=False, **kwargs):
     plot_freq = iterations // 5
-    info_freq = iterations // 10
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
     for i in range(iterations):
-        # if not i % info_freq:
-        #     print(i)
-        if i > 0 and (not i % plot_freq) and plot:
-            plot_score_hist(data, TOTAL_COL, iterations=i, title=reward_function.__name__)
+        if i > 0 and (not i % plot_freq) and show:
+            pts, density = plot_score_hist(data, TOTAL_COL)
+            ax.plot(pts, density, label=str(i))
         sample_outcomes(data, outcome_std)
         kwargs['data'] = data
         reward_applicator(reward_function, **kwargs)
-    if plot:
+    ax.legend()
+    ax.set_title(f'{reward_function.__name__}')
+    if save:
+        fig.savefig(f'figures/{reward_function.__name__}.png', dpi=100)
+    if show:
         plt.show()
+    plt.close()
 
 
 def snooker_rewards(**kwargs):
@@ -116,15 +121,13 @@ def reward_applicator(reward_function, is_rank, **kwargs):
     data[TOTAL_COL] = data[TOTAL_COL].add(rewards)
 
 
-def plot_score_hist(data, col_name, iterations, title):
+def plot_score_hist(data, col_name):
     totals = data[col_name]
     density = gaussian_kde(totals)
     xs = np.linspace(min(0, np.min(totals)), np.max(totals), 300)
     density.covariance_factor = lambda: .25
     density._compute_covariance()
-    plt.plot(xs, density(xs), label=str(iterations))
-    plt.legend()
-    plt.title(title)
+    return xs, density(xs)
 
 
 if __name__ == "__main__":
