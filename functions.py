@@ -102,7 +102,9 @@ def simple_proportional_rewards(**kwargs):
 
 def exp_proportional_rewards(**kwargs):
     data = kwargs['data']
-    return np.exp(data[OUTCOME_COL])
+    intercept = kwargs['intercept']
+    slope = kwargs['slope']
+    return np.exp(slope * data[OUTCOME_COL] + intercept)
 
 
 def rank_rewards(reward_function, **kwargs):
@@ -116,7 +118,7 @@ def proportional_rewards(reward_function, **kwargs):
 def reward_applicator(reward_function, is_rank, **kwargs):
     data = kwargs['data']
     if is_rank:
-        data.sort_values(by=[OUTCOME_COL], inplace=True, ascending=False)
+        data.sort_values(by=[OUTCOME_COL], inplace=True, ascending=True)
     rewards = reward_function(**kwargs)
     data[TOTAL_COL] = data[TOTAL_COL].add(rewards)
 

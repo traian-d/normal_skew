@@ -3,8 +3,6 @@ import numpy as np
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from scipy.stats import gaussian_kde
-import functions as F
 
 
 def make_url(page_nr):
